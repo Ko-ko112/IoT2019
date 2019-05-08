@@ -89,7 +89,7 @@ function curl(method, body) {
   })
 }
 
-app.listen(port, hostname, () => {
+app.listen(process.env.PORT || port, hostname, () => {
   console.log(`Server running at http://${hostname}:${port}/`)
 })
 
