@@ -4,7 +4,10 @@
   "description": "demo",
   "main": "app.js",
   "scripts": {
-    "test": "node app.js"
+    "start":"node app1.js",
+    "test": "echo \"Error: no test specified\" && exit 1 "
+  },"engines":{
+    "node":"10.15.3"
   },
   "repository": {
     "type": "git",
