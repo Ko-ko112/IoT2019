@@ -129,7 +129,7 @@ app.get('/delete',(req,res)=>{
 
 app.post('/postdata',(req,res)=>{
     let buffer = new data({
-      s_id : req.body.s_id,
+      sid : req.body.s_id,
       name : req.body.name,
       age : req.body.age
     })
