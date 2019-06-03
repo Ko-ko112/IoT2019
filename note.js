@@ -4,6 +4,9 @@
 const express = require('express')
 var app = express()
 
+var stdDB = mongoose.model('student_database',stdSchema)
+
+
 
 app.get('/:input', (req,res) => {
     res.send(req,params.inout)
@@ -16,3 +19,44 @@ app.get('/webhook', (req, res) => {
     push(msg)
     res.send(msg)
   })
+
+
+
+/*   ----------------------------------------------------------------------------------- */
+
+
+  app.get('/geteq', (req,res) => {
+    stdDB.find({id:{$eq:req.params.inout}}).then((docs)=>{
+        res.send(docs)
+    },(err)=>{
+        res.status(404).send(err)
+    })
+})
+
+
+app.get('/getgt', (req,res) => {
+    stdDB.find({id:{$gt:req.params.input}}).then((docs)=>{
+        res.send(docs)
+    },(err)=>{
+        res.status(404).send(err)
+    })
+})
+
+
+app.get('/getgte', (req,res) => {
+    stdDB.find({id:{$gte:req.params.input}}).then((docs)=>{
+        res.send(docs)
+    },(err)=>{
+        res.status(404).send(err)
+    })
+})
+
+
+
+app.get('/getbtw/:min/:max', (req,res) => {
+    stdDB.find({id:{$gte:req.params.min , $gte:req.params.max }}).then((docs)=>{
+        res.send(docs)
+    },(err)=>{
+        res.status(404).send(err)
+    })
+})

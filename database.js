@@ -17,7 +17,7 @@ mongoose.connect(process.env.MONGODE_URI || 'mongodb://localhost:27017/Mydb').th
 const hostname = '127.0.0.1'
 const HEADERS = {
   'Content-Type': 'application/json',
-  'Authorization': 'Bearer AhSpmjQhLRScfIWaeDHx0rCMLlEBVsC/VrdQ1J+AWx9ecNtt4Bm7lKNaRimu0/GgnZvk5YkPyjuAmtwyEcP71HS3BUCcWlty6wf1+jlWB7ubaWor+ZmrUcmZ5g6OeLIXa9n5qaxDEXHKoPcnq5YDcAdB04t89/1O/w1cDnyilFU='
+  'Authorization': 'Bearer GXl3+JpjtpBoqwDUJgoxT6mr8EaXBnyWsxzV2GQgUMZGleS+RQ33S/ldUBmosGFGrFkAe9T1Jw8VYhC5/MLUKkfVSR6TFqOVkTeema41NkTQ/1jmZhGSKWLqohYK4WyUkstW3mixnUCcBvXWzlG5QAdB04t89/1O/w1cDnyilFU='
 }
 
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -26,7 +26,7 @@ app.use(bodyParser.json())
 // Push
 app.get('/webhook', (req, res) => {
   // push block
-  let msg = 'Hi!'
+  let msg = 'Hello world'
   push(msg)
   res.send(msg)
 })
@@ -52,7 +52,7 @@ app.post('/webhook', (req, res) => {
 function push(msg) {
   let body = JSON.stringify({
     // push body
-    to: 'U6d240ea09c8ef1164f7e9a0e03379dde',
+    to: 'U25c4442f20db433a4e778b8e2fe7b03f',
     messages: [
       {
         type: 'text',
@@ -95,13 +95,14 @@ app.listen(process.env.PORT || port, hostname, () => {
 
 /*------------------------------------------------------------------------*/
 
+/*
 var dataSchema= new Schema({
   s_id:{type:String, require:true, unique:true},
   name:{type:String, require:true},
   age:{type:String, require:true}
 })
 
-var data = mongoose.model('Student_data', dataSchema)
+var data = mongoose.model('Student_data', dataSchema)    //ตัวแปร data เพื่อใช้ app.get
 
 app.get('/getdata',(req,res)=>{
   data.find().then((docs)=>{
@@ -139,3 +140,6 @@ app.post('/postdata',(req,res)=>{
         res.send(err)
     })
 })
+
+
+*/
