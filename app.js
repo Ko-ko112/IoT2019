@@ -1,58 +1,198 @@
-var express = require('express')
-var bodyParser = require('body-parser')
-var request = require('request')
-var app = express()
 
-app.post('/webhook', (req, res) => res.sendStatus(200))
-app.listen(port)
+const bodyParser = require('body-parser')
+const request = require('request')
+const express = require('express')
+const mongoose = require('mongoose')
 
-app.use(bodyParser.json())
+const app = express()
+const port = process.env.PORT || 4000
+var Schema = mongoose.Schema
 
-app.set('port', (process.env.PORT || 4000))
-app.use(bodyParser.urlencoded({extended: true}))
+mongoose.Promise = global.Promise
+mongoose.connect(process.env.MONGODE_URI || 'mongodb://localhost:27017/Mydb').then(()=>{
+  console.log('@@@ Connect Success @@@')
+},()=>{
+  console.log('!!! Fail to connect !!!')
+})
+
+const hostname = '127.0.0.1'
+const HEADERS = {
+  'Content-Type': 'application/json',
+  'Authorization': 'Bearer GXl3+JpjtpBoqwDUJgoxT6mr8EaXBnyWsxzV2GQgUMZGleS+RQ33S/ldUBmosGFGrFkAe9T1Jw8VYhC5/MLUKkfVSR6TFqOVkTeema41NkTQ/1jmZhGSKWLqohYK4WyUkstW3mixnUCcBvXWzlG5QAdB04t89/1O/w1cDnyilFU='
+}
+
+app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 
 /*
-app.post('/webhook', (req, res) => {
-  var text = req.body.events[0].message.text
-  var sender = req.body.events[0].source.userId
-  var replyToken = req.body.events[0].replyToken
-  console.log(text, sender, replyToken)
-  console.log(typeof sender, typeof text)
-  // console.log(req.body.events[0])
-  if (text === 'Hello') {
-    sendText(sender, text)
-  }
-  res.sendStatus(200)
+request.get({
+  headers: {
+      'Content-Type':'application/json',
+      'Accept': 'application/json'
+  },
+  url: 'http://dummy.restapiexample.com/api/v1/employee/2574',
+  json: true
+}, function(error, response, body){
+  console.log(body)
 })
 
-function sendText (sender, text) {
-  let data = {
-    to: sender,
+
+
+
+request.post({
+  headers: {
+      'Content-Type':'application/json',
+      'Accept': 'application/json'
+  },
+  url: 'http://dummy.restapiexample.com/api/v1/create',
+  body:{
+      "name": "TESTEST",
+      "salary":"30000",
+      "age":"10"
+  },
+  json: true
+}, function(error, response, body){
+  console.log(body)
+})
+*/
+
+
+// Push
+app.get('/webhook', (req, res) => {
+  // push block
+  let msg = 'Hi!'
+  push(msg)
+  res.send(msg)
+})
+
+
+
+// Reply
+app.post('/webhook', (req, res) => {
+  // reply block
+  let reply_token = req.body.events[0].replyToken
+  let msg = req.body.events[0].message.text
+    if(msg.slice(0,3) == get){
+        data.find({age:{$eq:msg.slice(3)}}).then((docs)=>{
+          let msg_send = 'request get' 
+          console.log(docs)
+            reply(reply_token, msg_send)
+        })  
+  }else{
+    reply(reply_token, msg)
+  }
+
+
+  //reply(reply_token, msg)
+})
+
+
+
+function push(msg) {
+  let body = JSON.stringify({
+    // push body
+    to: 'U25c4442f20db433a4e778b8e2fe7b03f',
     messages: [
       {
         type: 'text',
-        text: 'สวัสดี'
+        text: msg
       }
     ]
-  }
-  request({
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer AhSpmjQhLRScfIWaeDHx0rCMLlEBVsC/VrdQ1J+AWx9ecNtt4Bm7lKNaRimu0/GgnZvk5YkPyjuAmtwyEcP71HS3BUCcWlty6wf1+jlWB7ubaWor+ZmrUcmZ5g6OeLIXa9n5qaxDEXHKoPcnq5YDcAdB04t89/1O/w1cDnyilFU='
-    },
-    url: 'https://api.line.me/v2/bot/message/push',
-    method: 'POST',
-    body: data,
-    json: true
-  }, function (err, res, body) {
-    if (err) console.log('error')
-    if (res) console.log('success')
-    if (body) console.log(body)
+  })
+  curl('push', body)
+}
+
+
+/*
+function reply(reply_token, msg) {
+  let body = JSON.stringify({
+    // reply body
+    replyToken: reply_token,
+    messages: [
+      {
+        type: 'text',
+        text: msg
+      }
+    ]
+  })
+  curl('reply', body);
+}
+*/
+
+function curl(method, body) {
+  request.post({
+    url: 'https://api.line.me/v2/bot/message/' + method,
+    headers: HEADERS,
+    body: body
+  }, (err, res, body) => {
+    console.log('status = ' + res.statusCode)
   })
 }
 
-app.listen(app.get('port'), function () {
-  console.log('run at port', app.get('port'))
+app.listen(process.env.PORT || port, hostname, () => {
+  console.log(`Server running at http://${hostname}:${port}/`)
 })
-*/
+
+
+
+
+/*------------------------------------------------------------------------*/
+
+
+var DB_Table = new Schema({
+  id:{type:String, require:true, unique:true},
+  temp:{type:Number,require :true},
+  humi:{type:Number, require:true},
+  water:{type:String, require:true},
+  gas:{type:Number, require:true},
+  dust:{
+         d1_0:{type:Number, require:true},
+         d2_5:{type:Number,require :true},
+         d10_0:{type:Number, require:true},
+      },
+  date:{type:String, require:true},
+   })
+ 
+
+
+var data = mongoose.model('Student_data', DB_Table)   
+app.get('/getdata',(req,res)=>{
+  data.find().then((docs)=>{
+    res.send(docs)
+  })
+})
+
+app.get('/getdata/:x',(req,res)=>{
+  data.find({name:req.params.x}).then((docs)=>{
+    res.send(docs)
+  })
+})
+
+app.get('/getbyage/:age1',(req,res)=>{
+    data.find({age:{$gt:paraseInt(req.params.age1)}}).then((docs)=>{
+        res.send(docs)
+    })
+})
+
+app.get('/delete',(req,res)=>{
+    data.remove({},()=>{
+        res.send('Drop compt=lete!')
+    })
+})
+
+app.post('/post',(req,res)=>{
+    let buffer = new data({
+      humi : req.body.humi,
+      water : req.body.water,
+      gas : req.body.gas,
+      dust : req.body.dust
+    })
+    buffer.save().then((docs)=>{
+      res.send(docs)
+    },(err)=>{
+        res.send(err)
+    })
+})
+
+
+
