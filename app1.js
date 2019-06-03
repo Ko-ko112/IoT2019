@@ -105,6 +105,13 @@ const bodyParser = require('body-parser')
 const request = require('request')
 const app = express()
 const port = process.env.PORT || 4000
+mongoose.Promise = global.Promise
+mongoose.connect(process.env.MONGODE_URI || 'mongodb://localhost:27017/Mydb').then(()=>{
+  console.log('@@@ Connect Success @@@')
+},()=>{
+  console.log('!!! Fail to connect !!!')
+})
+
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 app.post('/webhook', (req, res) => {
