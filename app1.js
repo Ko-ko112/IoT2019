@@ -1,4 +1,4 @@
-/*
+
 const bodyParser = require('body-parser')
 const request = require('request')
 const express = require('express')
@@ -97,65 +97,6 @@ function curl(method, body) {
 app.listen(process.env.PORT || port, hostname, () => {
   console.log(`Server running at http://${hostname}:${port}/`)
 })
-
-*/
-
-const express = require('express')
-const bodyParser = require('body-parser')
-const request = require('request')
-const app = express()
-const port = process.env.PORT || 4000
-app.use(bodyParser.urlencoded({ extended: false }))
-app.use(bodyParser.json())
-app.post('/webhook', (req, res) => {
-    let reply_token = req.body.events[0].replyToken
-    reply(reply_token)
-    res.sendStatus(200)
-})
-app.listen(port)
-function reply(reply_token) {
-    let headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer AhSpmjQhLRScfIWaeDHx0rCMLlEBVsC/VrdQ1J+AWx9ecNtt4Bm7lKNaRimu0/GgnZvk5YkPyjuAmtwyEcP71HS3BUCcWlty6wf1+jlWB7ubaWor+ZmrUcmZ5g6OeLIXa9n5qaxDEXHKoPcnq5YDcAdB04t89/1O/w1cDnyilFU='
-    }
-    let body = JSON.stringify({
-        replyToken: reply_token,
-        messages: [{
-            type: 'text',
-            text: 'Hello'
-        },
-        {
-            type: 'text',
-            text: 'How are you?'
-        }]
-    })
-    request.post({
-        url: 'https://api.line.me/v2/bot/message/reply',
-        headers: headers,
-        body: body
-    }, (err, res, body) => {
-        console.log('status = ' + res.statusCode);
-    });
-}
-
-function push(msg) {
-  let body = JSON.stringify({
-    // push body
-    to: 'U6d240ea09c8ef1164f7e9a0e03379dde',
-    messages: [
-      {
-        type: 'text',
-        text: msg
-      }
-    ]
-  })
-  curl('push', body)
-}
-
-
-
-
-
 
 
 
