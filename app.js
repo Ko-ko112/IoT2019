@@ -10,6 +10,9 @@ app.set('port', (process.env.PORT || 4000))
 app.use(bodyParser.urlencoded({extended: false}))
 app.use(bodyParser.json())
 
+app.post('/webhook', (req, res) => {
+  res.sendStatus(200)
+})
 
 app.get('/', function (req, res) {
 	res.send('Hello')
