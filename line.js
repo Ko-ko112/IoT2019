@@ -49,7 +49,7 @@ app.post("/webhook", (req, res) => {
     });
 
   }else if(msg.toLowerCase().search("request get") != -1) {
-    request("http://44295fc4.ngrok.io", function(
+    request("http://44295fc4.ngrok.io/getall", function(
       error,
       response,
       body
@@ -110,3 +110,34 @@ function curl(method, body) {
 app.listen(port, hostname, () => {
   console.log(`Server running at http://${hostname}:${port}/`);
 });
+
+app.get("/getall", (req, res) => {
+  data.find().then(doc => {
+    res.send(doc);
+  });
+});
+app.get("/getlast", (req, res) => {
+  data.find().then(doc => {
+    res.send(doc[Object.keys(doc).length - 1]);
+  });
+});
+app.get("/drop/:kuy", (req, res) => {
+  data.remove(
+    {},
+    doc => {
+      res.send(doc);
+    },
+    err => {
+      res.send(err);
+    }
+  );
+});
+function hex_to_ascii(str1) {
+  var hex = str1.toString();
+  var str = "";
+  for (var n = 0; n < hex.length; n += 2) {
+    str += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
+  }
+
+  return str;
+}
