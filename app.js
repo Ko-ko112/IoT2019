@@ -1,198 +1,116 @@
+const express = require("express");
+const mongoose = require("mongoose");
+const bodyparser = require("body-parser");
 
-const bodyParser = require('body-parser')
-const request = require('request')
-const express = require('express')
-const mongoose = require('mongoose')
+mongoose.Promise = global.Promise;
 
-const app = express()
-const port = process.env.PORT || 4000
-var Schema = mongoose.Schema
+mongoose
+  .connect(process.env.MONGODB_URI || "mongodb://localhost:27017/Mydb")
+  .then(
+    () => {
+      console.log("@@@ Connect Success @@@");
+    },
+    () => {
+      console.log("!!! Fail to connect !!!");
+    }
+  );
+var app = express();
+app.use(bodyparser.json());
 
-mongoose.Promise = global.Promise
-mongoose.connect(process.env.MONGODE_URI || 'mongodb://localhost:27017/Mydb').then(()=>{
-  console.log('@@@ Connect Success @@@')
-},()=>{
-  console.log('!!! Fail to connect !!!')
-})
+var Schema = mongoose.Schema;
 
-const hostname = '127.0.0.1'
-const HEADERS = {
-  'Content-Type': 'application/json',
-  'Authorization': 'Bearer GXl3+JpjtpBoqwDUJgoxT6mr8EaXBnyWsxzV2GQgUMZGleS+RQ33S/ldUBmosGFGrFkAe9T1Jw8VYhC5/MLUKkfVSR6TFqOVkTeema41NkTQ/1jmZhGSKWLqohYK4WyUkstW3mixnUCcBvXWzlG5QAdB04t89/1O/w1cDnyilFU='
-}
-
-app.use(bodyParser.urlencoded({ extended: false }))
-app.use(bodyParser.json())
-
-/*
-request.get({
-  headers: {
-      'Content-Type':'application/json',
-      'Accept': 'application/json'
+var dataSchema = new Schema({
+  id: { require: true, type: String, unique: true },
+  temp: { require: true, type: String },
+  humi: { require: true, type: String },
+  water: { require: true, type: String },
+  gas: { require: true, type: String },
+  dust: {
+    d1_0: {
+      require: true,
+      type: String
+    },
+    d2_5: {
+      require: true,
+      type: String
+    },
+    d10_0: {
+      require: true,
+      type: String
+    }
   },
-  url: 'http://dummy.restapiexample.com/api/v1/employee/2574',
-  json: true
-}, function(error, response, body){
-  console.log(body)
-})
+  date: { require: true, type: String }
+});
 
+var data = mongoose.model("data", dataSchema);
 
+app.listen(4567);
 
+app.post("/post", (req, res) => {
+  data.find().then(doc => {
+    let time = req.body.DevEUI_uplink.Time;
+    let posT = time.search("T");
+    let hex2str = hex_to_ascii(req.body.DevEUI_uplink.payload_hex);
+    let buf = new data({
+      id: doc.length,
+      temp: hex2str.slice(0, hex2str.search("T")),
+      humi: hex2str.slice(hex2str.search("T") + 1, hex2str.search("H")),
+      water: hex2str.slice(hex2str.search("H") + 1, hex2str.search("W")),
+      gas: hex2str.slice(hex2str.search("W") + 1, hex2str.search("G")),
+      dust: {
+        d1_0: hex2str.slice(hex2str.search("G") + 1, hex2str.search("D1_0")),
+        d2_5: hex2str.slice(hex2str.search("D1_0") + 4, hex2str.search("D2_5")),
+        d10_0: hex2str.slice(
+          hex2str.search("D2_5") + 4,
+          hex2str.search("D10_0")
+        )
+      },
+      date:
+        time.slice(posT - 2, posT) +
+        time.slice(posT - 5, posT - 3) +
+        time.slice(posT - 8, posT - 6) +
+        time.slice(posT + 1, posT + 3) +
+        time.slice(posT + 4, posT + 6) +
+        time.slice(posT + 7, posT + 9)
+    });
+    buf.save().then(
+      doc => {
+        res.send("save to db\n" + doc);
+      },
+      e => {
+        res.status(400).send("can not save to database\n" + e);
+      }
+    );
+  });
+});
 
-request.post({
-  headers: {
-      'Content-Type':'application/json',
-      'Accept': 'application/json'
-  },
-  url: 'http://dummy.restapiexample.com/api/v1/create',
-  body:{
-      "name": "TESTEST",
-      "salary":"30000",
-      "age":"10"
-  },
-  json: true
-}, function(error, response, body){
-  console.log(body)
-})
-*/
-
-
-// Push
-app.get('/webhook', (req, res) => {
-  // push block
-  let msg = 'Hi!'
-  push(msg)
-  res.send(msg)
-})
-
-
-
-// Reply
-app.post('/webhook', (req, res) => {
-  // reply block
-  let reply_token = req.body.events[0].replyToken
-  let msg = req.body.events[0].message.text
-    if(msg.slice(0,3) == get){
-        data.find({age:{$eq:msg.slice(3)}}).then((docs)=>{
-          let msg_send = 'request get' 
-          console.log(docs)
-            reply(reply_token, msg_send)
-        })  
-  }else{
-    reply(reply_token, msg)
+app.get("/getall", (req, res) => {
+  data.find().then(doc => {
+    res.send(doc);
+  });
+});
+app.get("/getlast", (req, res) => {
+  data.find().then(doc => {
+    res.send(doc[Object.keys(doc).length - 1]);
+  });
+});
+app.get("/drop/:kuy", (req, res) => {
+  data.remove(
+    {},
+    doc => {
+      res.send(doc);
+    },
+    err => {
+      res.send(err);
+    }
+  );
+});
+function hex_to_ascii(str1) {
+  var hex = str1.toString();
+  var str = "";
+  for (var n = 0; n < hex.length; n += 2) {
+    str += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
   }
 
-
-  //reply(reply_token, msg)
-})
-
-
-
-function push(msg) {
-  let body = JSON.stringify({
-    // push body
-    to: 'U25c4442f20db433a4e778b8e2fe7b03f',
-    messages: [
-      {
-        type: 'text',
-        text: msg
-      }
-    ]
-  })
-  curl('push', body)
+  return str;
 }
-
-
-/*
-function reply(reply_token, msg) {
-  let body = JSON.stringify({
-    // reply body
-    replyToken: reply_token,
-    messages: [
-      {
-        type: 'text',
-        text: msg
-      }
-    ]
-  })
-  curl('reply', body);
-}
-*/
-
-function curl(method, body) {
-  request.post({
-    url: 'https://api.line.me/v2/bot/message/' + method,
-    headers: HEADERS,
-    body: body
-  }, (err, res, body) => {
-    console.log('status = ' + res.statusCode)
-  })
-}
-
-app.listen(process.env.PORT || port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`)
-})
-
-
-
-
-/*------------------------------------------------------------------------*/
-
-
-var DB_Table = new Schema({
-  id:{type:String, require:true, unique:true},
-  temp:{type:Number,require :true},
-  humi:{type:Number, require:true},
-  water:{type:String, require:true},
-  gas:{type:Number, require:true},
-  dust:{
-         d1_0:{type:Number, require:true},
-         d2_5:{type:Number,require :true},
-         d10_0:{type:Number, require:true},
-      },
-  date:{type:String, require:true},
-   })
- 
-
-
-var data = mongoose.model('Student_data', DB_Table)   
-app.get('/getdata',(req,res)=>{
-  data.find().then((docs)=>{
-    res.send(docs)
-  })
-})
-
-app.get('/getdata/:x',(req,res)=>{
-  data.find({name:req.params.x}).then((docs)=>{
-    res.send(docs)
-  })
-})
-
-app.get('/getbyage/:age1',(req,res)=>{
-    data.find({age:{$gt:paraseInt(req.params.age1)}}).then((docs)=>{
-        res.send(docs)
-    })
-})
-
-app.get('/delete',(req,res)=>{
-    data.remove({},()=>{
-        res.send('Drop compt=lete!')
-    })
-})
-
-app.post('/post',(req,res)=>{
-    let buffer = new data({
-      humi : req.body.humi,
-      water : req.body.water,
-      gas : req.body.gas,
-      dust : req.body.dust
-    })
-    buffer.save().then((docs)=>{
-      res.send(docs)
-    },(err)=>{
-        res.send(err)
-    })
-})
-
-
-
